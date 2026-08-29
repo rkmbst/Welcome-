@@ -44,7 +44,7 @@ public:
         return Time(ticks);
     }
 
-    static constexpr Time fromSeconds(double seconds) noexcept;
+    static Time fromSeconds(double seconds) noexcept;
 
     constexpr Tick ticks() const noexcept {
         return ticks_;
