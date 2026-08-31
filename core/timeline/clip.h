@@ -2,6 +2,7 @@
 #define BEAST_CLIP_H
 
 #include <cstdint>
+#include <memory>
 
 #include "../project/asset.h"
 #include "../time/time.h"
@@ -105,6 +106,12 @@ public:
     void setEnabled(bool enabled) noexcept {
         enabled_ = enabled;
     }
+
+    /* --------------------------------------------------------
+     * Clone
+     * -------------------------------------------------------- */
+
+    std::unique_ptr<Clip> clone() const;
 
 private:
     ClipId id_{0};
