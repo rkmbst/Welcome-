@@ -10,23 +10,25 @@
     {
       "name": "dev",
       "displayName": "Beast Development",
-      "description": "Development configuration for Beast Engine",
+      "description": "Development configuration for Beast Engine with tests",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "BEAST_BUILD_TESTS": "ON"
+        "BEAST_BUILD_TESTS": "ON",
+        "BEAST_ENABLE_WARNINGS": "ON"
       }
     },
     {
       "name": "release",
       "displayName": "Beast Release",
-      "description": "Optimized release configuration",
+      "description": "Optimized release configuration with tests",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "BEAST_BUILD_TESTS": "ON"
+        "BEAST_BUILD_TESTS": "ON",
+        "BEAST_ENABLE_WARNINGS": "ON"
       }
     }
   ],
