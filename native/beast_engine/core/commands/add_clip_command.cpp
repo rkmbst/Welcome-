@@ -13,6 +13,7 @@ AddClipCommand::AddClipCommand(
     std::unique_ptr<Clip> clip
 )
     : trackId_(trackId),
+      clipId_(clip ? clip->id() : 0),
       clip_(std::move(clip)) {
 }
 
@@ -86,7 +87,8 @@ CommandResult AddClipCommand::undo(
         return CommandResult::InvalidState;
     }
 
-    Project& project = state.document().project();
+    Project& project =
+        state.document().project();
 
     Sequence* sequence =
         project.activeSequence();
@@ -102,22 +104,25 @@ CommandResult AddClipCommand::undo(
         return CommandResult::NotFound;
     }
 
-    /*
-     * Find the Clip before removing it.
-     */
-    Clip* clip =
-        track->findClip(
-            clip_->id()
-        );
+    if (track->locked()) {
+        return CommandResult::InvalidState;
+    }
 
     /*
-     * clip_ is currently null because Track owns it.
-     *
-     * Therefore we cannot use clip_ here.
-     *
-     * The command needs the ClipId independently.
+     * Transfer ownership from Track back to Command.
      */
-    return CommandResult::Failed;
+    std::unique_ptr<Clip> clip =
+        track->takeClip(clipId_);
+
+    if (!clip) {
+        return CommandResult::NotFound;
+    }
+
+    clip_ = std::move(clip);
+
+    markUndone();
+
+    return CommandResult::Success;
 }
 
 } // namespace beast
