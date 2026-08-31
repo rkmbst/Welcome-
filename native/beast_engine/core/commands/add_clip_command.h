@@ -50,6 +50,8 @@ public:
 private:
     TrackId trackId_{0};
 
+    ClipId clipId_{0};
+
     std::unique_ptr<Clip> clip_;
 };
 
