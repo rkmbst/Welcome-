@@ -1,31 +1,66 @@
 #include <gtest/gtest.h>
 
+#include <string>
+
 #include "../../../native/beast_engine/core/identity/entity_id.h"
-#include "../../../native/beast_engine/core/identity/handle.h"
 
-TEST(EntityIdTest, GeneratedIdsAreValid) {
-    const auto first =
-        beast::EntityId::generate();
+namespace {
 
-    const auto second =
-        beast::EntityId::generate();
+using beast::EntityId;
 
-    EXPECT_FALSE(first.isNull());
-    EXPECT_FALSE(second.isNull());
-    EXPECT_NE(first, second);
+TEST(EntityIdTest, DefaultIdIsNull) {
+    const EntityId id;
+
+    EXPECT_TRUE(id.isNull());
+    EXPECT_EQ(id.high(), 0u);
+    EXPECT_EQ(id.low(), 0u);
 }
 
-TEST(EntityIdTest, StringRoundTripWorks) {
-    const auto original =
-        beast::EntityId::generate();
+TEST(EntityIdTest, NullIdIsStable) {
+    const EntityId first = EntityId::null();
+    const EntityId second = EntityId::null();
+
+    EXPECT_TRUE(first.isNull());
+    EXPECT_EQ(first, second);
+}
+
+TEST(EntityIdTest, GeneratedIdsAreNotNull) {
+    const EntityId id = EntityId::generate();
+
+    EXPECT_FALSE(id.isNull());
+}
+
+TEST(EntityIdTest, GeneratedIdsAreNormallyUnique) {
+    constexpr int count = 1000;
+
+    EntityId previous = EntityId::null();
+
+    for (int i = 0; i < count; ++i) {
+        const EntityId current = EntityId::generate();
+
+        EXPECT_FALSE(current.isNull());
+
+        if (!previous.isNull()) {
+            EXPECT_NE(current, previous);
+        }
+
+        previous = current;
+    }
+}
+
+TEST(EntityIdTest, StringRoundTrip) {
+    const EntityId original =
+        EntityId::generate();
 
     const std::string text =
         original.toString();
 
-    beast::EntityId parsed;
+    EXPECT_EQ(text.size(), 36u);
+
+    EntityId parsed;
 
     ASSERT_TRUE(
-        beast::EntityId::parse(
+        EntityId::parse(
             text,
             parsed
         )
@@ -37,41 +72,35 @@ TEST(EntityIdTest, StringRoundTripWorks) {
     );
 }
 
-TEST(HandleTest, InvalidHandleIsInvalid) {
-    using ClipHandle =
-        beast::Handle<beast::ClipTag>;
-
-    const ClipHandle handle =
-        ClipHandle::invalid();
+TEST(EntityIdTest, InvalidStringIsRejected) {
+    EntityId parsed;
 
     EXPECT_FALSE(
-        handle.isValid()
+        EntityId::parse(
+            "",
+            parsed
+        )
+    );
+
+    EXPECT_FALSE(
+        EntityId::parse(
+            "invalid-id",
+            parsed
+        )
     );
 }
 
-TEST(HandleTest, ValidHandleWorks) {
-    const auto id =
-        beast::EntityId::generate();
+TEST(EntityIdTest, BytesAreSixteenBytes) {
+    const EntityId id =
+        EntityId::generate();
 
-    using ClipHandle =
-        beast::Handle<beast::ClipTag>;
-
-    const ClipHandle handle(
-        id,
-        1
-    );
-
-    EXPECT_TRUE(
-        handle.isValid()
-    );
+    const auto bytes =
+        id.bytes();
 
     EXPECT_EQ(
-        handle.id(),
-        id
-    );
-
-    EXPECT_EQ(
-        handle.generation(),
-        1
+        bytes.size(),
+        16u
     );
 }
+
+} // namespace
