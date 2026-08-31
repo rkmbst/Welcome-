@@ -2,16 +2,14 @@
 #define BEAST_PROJECT_H
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
-#include "../time/time.h"
+#include "asset.h"
+#include "sequence.h"
 
 namespace beast {
-
-/* ============================================================
- * Project ID
- * ============================================================ */
 
 using ProjectId = std::uint64_t;
 
@@ -32,6 +30,26 @@ struct ProjectSettings final {
 
 /* ============================================================
  * Project
+ *
+ * Root domain object of the editor.
+ *
+ * Ownership:
+ *
+ * Project
+ *   ├── owns Assets
+ *   └── owns Sequences
+ *          └── owns Tracks
+ *                 └── owns Clips
+ *                        └── references AssetId
+ *
+ * The Project itself knows nothing about:
+ * - Flutter
+ * - FFmpeg
+ * - GPU
+ * - Audio hardware
+ * - Database
+ *
+ * It is pure editor-domain state.
  * ============================================================ */
 
 class Project final {
@@ -75,9 +93,68 @@ public:
         return settings_;
     }
 
-    void setSettings(const ProjectSettings& settings) {
-        settings_ = settings;
+    void setSettings(const ProjectSettings& settings);
+
+    /* --------------------------------------------------------
+     * Asset Ownership
+     * -------------------------------------------------------- */
+
+    bool addAsset(std::unique_ptr<Asset> asset);
+
+    bool removeAsset(AssetId assetId);
+
+    Asset* findAsset(AssetId assetId) noexcept;
+
+    const Asset* findAsset(AssetId assetId) const noexcept;
+
+    const std::vector<std::unique_ptr<Asset>>& assets() const noexcept {
+        return assets_;
     }
+
+    std::size_t assetCount() const noexcept {
+        return assets_.size();
+    }
+
+    /* --------------------------------------------------------
+     * Sequence Ownership
+     * -------------------------------------------------------- */
+
+    bool addSequence(std::unique_ptr<Sequence> sequence);
+
+    bool removeSequence(SequenceId sequenceId);
+
+    Sequence* findSequence(SequenceId sequenceId) noexcept;
+
+    const Sequence* findSequence(
+        SequenceId sequenceId
+    ) const noexcept;
+
+    const std::vector<std::unique_ptr<Sequence>>& sequences()
+        const noexcept {
+        return sequences_;
+    }
+
+    std::size_t sequenceCount() const noexcept {
+        return sequences_.size();
+    }
+
+    /* --------------------------------------------------------
+     * Active Sequence
+     *
+     * The project may eventually contain multiple sequences.
+     * Exactly which sequence is active is an editor concern,
+     * but the project stores the selected sequence identity.
+     * -------------------------------------------------------- */
+
+    SequenceId activeSequenceId() const noexcept {
+        return activeSequenceId_;
+    }
+
+    bool setActiveSequence(SequenceId sequenceId);
+
+    Sequence* activeSequence() noexcept;
+
+    const Sequence* activeSequence() const noexcept;
 
     /* --------------------------------------------------------
      * Revision
@@ -98,16 +175,12 @@ private:
 
     ProjectSettings settings_{};
 
-    /*
-     * Incremented whenever the logical project state changes.
-     *
-     * This becomes important later for:
-     * - Snapshot isolation
-     * - Render invalidation
-     * - Autosave
-     * - Undo/Redo
-     * - Cache invalidation
-     */
+    std::vector<std::unique_ptr<Asset>> assets_;
+
+    std::vector<std::unique_ptr<Sequence>> sequences_;
+
+    SequenceId activeSequenceId_{0};
+
     std::uint64_t revision_{0};
 };
 
