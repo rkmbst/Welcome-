@@ -7,30 +7,46 @@ project(
 )
 
 # ------------------------------------------------------------
-# Global C++ configuration
+# Language
 # ------------------------------------------------------------
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Prefer position-independent code because the core will later
-# be exposed through shared libraries / platform bridges.
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(
+    CMAKE_POSITION_INDEPENDENT_CODE
+    ON
+)
+
+# ------------------------------------------------------------
+# Options
+# ------------------------------------------------------------
+
+option(
+    BEAST_BUILD_TESTS
+    "Build Beast tests"
+    ON
+)
 
 # ------------------------------------------------------------
 # Engine
 # ------------------------------------------------------------
 
-add_subdirectory(native/beast_engine)
+add_subdirectory(
+    native/beast_engine
+)
 
 # ------------------------------------------------------------
 # Tests
 # ------------------------------------------------------------
 
-option(BEAST_BUILD_TESTS "Build Beast Core tests" ON)
-
 if(BEAST_BUILD_TESTS)
+
     enable_testing()
-    add_subdirectory(tests)
+
+    add_subdirectory(
+        tests
+    )
+
 endif()
