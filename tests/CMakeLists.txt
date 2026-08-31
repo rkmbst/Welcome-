@@ -1,25 +1,79 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(BeastTests LANGUAGES CXX)
+project(BeastEngine LANGUAGES CXX)
 
-add_executable(
-    beast_core_smoke_test
-    core/smoke_test.cpp
+# ------------------------------------------------------------
+# Core sources
+# ------------------------------------------------------------
+
+file(GLOB_RECURSE BEAST_CORE_SOURCES
+    CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp"
 )
 
-target_link_libraries(
-    beast_core_smoke_test
-    PRIVATE
-        beast_core
+add_library(
+    beast_core
+    STATIC
+    ${BEAST_CORE_SOURCES}
 )
+
+# ------------------------------------------------------------
+# Beast Core options
+# ------------------------------------------------------------
+
+option(
+    BEAST_ENABLE_WARNINGS
+    "Enable strict compiler warnings"
+    ON
+)
+
+# ------------------------------------------------------------
+# Include paths
+# ------------------------------------------------------------
+
+target_include_directories(
+    beast_core
+    PUBLIC
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+# ------------------------------------------------------------
+# C++ standard
+# ------------------------------------------------------------
 
 target_compile_features(
-    beast_core_smoke_test
-    PRIVATE
+    beast_core
+    PUBLIC
         cxx_std_20
 )
 
-add_test(
-    NAME BeastCoreSmokeTest
-    COMMAND beast_core_smoke_test
-)
+# ------------------------------------------------------------
+# Compiler warnings
+# ------------------------------------------------------------
+
+if(BEAST_ENABLE_WARNINGS)
+
+    if(MSVC)
+
+        target_compile_options(
+            beast_core
+            PRIVATE
+                /W4
+                /permissive-
+        )
+
+    else()
+
+        target_compile_options(
+            beast_core
+            PRIVATE
+                -Wall
+                -Wextra
+                -Wpedantic
+                -Wconversion
+                -Wsign-conversion
+        )
+
+    endif()
+
+endif()
