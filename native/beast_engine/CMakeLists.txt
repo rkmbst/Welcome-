@@ -18,6 +18,16 @@ add_library(
 )
 
 # ------------------------------------------------------------
+# Beast Core options
+# ------------------------------------------------------------
+
+option(
+    BEAST_ENABLE_WARNINGS
+    "Enable strict compiler warnings"
+    ON
+)
+
+# ------------------------------------------------------------
 # Include paths
 # ------------------------------------------------------------
 
@@ -38,24 +48,32 @@ target_compile_features(
 )
 
 # ------------------------------------------------------------
-# Warnings
+# Compiler warnings
 # ------------------------------------------------------------
 
-if(MSVC)
-    target_compile_options(
-        beast_core
-        PRIVATE
-            /W4
-            /permissive-
-    )
-else()
-    target_compile_options(
-        beast_core
-        PRIVATE
-            -Wall
-            -Wextra
-            -Wpedantic
-            -Wconversion
-            -Wsign-conversion
-    )
+if(BEAST_ENABLE_WARNINGS)
+
+    if(MSVC)
+
+        target_compile_options(
+            beast_core
+            PRIVATE
+                /W4
+                /permissive-
+        )
+
+    else()
+
+        target_compile_options(
+            beast_core
+            PRIVATE
+                -Wall
+                -Wextra
+                -Wpedantic
+                -Wconversion
+                -Wsign-conversion
+        )
+
+    endif()
+
 endif()
