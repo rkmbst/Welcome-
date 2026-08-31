@@ -157,18 +157,6 @@ public:
     const Sequence* activeSequence() const noexcept;
 
     /* --------------------------------------------------------
-     * Revision
-     * -------------------------------------------------------- */
-
-    std::uint64_t revision() const noexcept {
-        return revision_;
-    }
-
-    void markChanged() noexcept {
-        ++revision_;
-    }
-
-    /* --------------------------------------------------------
      * Clone
      * -------------------------------------------------------- */
 
@@ -186,8 +174,6 @@ private:
     std::vector<std::unique_ptr<Sequence>> sequences_;
 
     SequenceId activeSequenceId_{0};
-
-    std::uint64_t revision_{0};
 };
 
 } // namespace beast
