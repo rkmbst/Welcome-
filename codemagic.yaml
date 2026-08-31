@@ -1,0 +1,144 @@
+workflows:
+
+  # ==========================================================
+  # CORE CI
+  # ==========================================================
+
+  core-ci:
+    name: Beast Core CI
+    instance_type: linux_x2
+    max_build_duration: 30
+
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+        - pattern: develop
+          include: true
+
+    scripts:
+
+      - name: Check repository
+        script: |
+          set -e
+          git --version
+          cmake --version
+          c++ --version
+
+      - name: Configure C++ core
+        script: |
+          set -e
+          cmake --preset dev
+
+      - name: Build C++ core
+        script: |
+          set -e
+          cmake --build --preset dev
+
+      - name: Run C++ tests
+        script: |
+          set -e
+          ctest --preset dev
+
+
+  # ==========================================================
+  # ANDROID CI
+  # ==========================================================
+
+  android-ci:
+    name: Beast Android CI
+    instance_type: linux_x2
+    max_build_duration: 60
+
+    triggering:
+      events:
+        - push
+        - pull_request
+
+    environment:
+      flutter: stable
+
+    scripts:
+
+      - name: Flutter version
+        script: |
+          set -e
+          flutter --version
+
+      - name: Get Flutter packages
+        script: |
+          set -e
+          flutter pub get
+
+      - name: Analyze Flutter
+        script: |
+          set -e
+          flutter analyze
+
+      - name: Flutter tests
+        script: |
+          set -e
+          mkdir -p test-results
+          flutter test --machine > test-results/flutter.json
+        test_report: test-results/flutter.json
+
+      - name: Build Android
+        script: |
+          set -e
+          flutter build apk --release
+
+    artifacts:
+      - build/app/outputs/flutter-apk/*.apk
+
+
+  # ==========================================================
+  # IOS CI
+  # ==========================================================
+
+  ios-ci:
+    name: Beast iOS CI
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    triggering:
+      events:
+        - push
+        - pull_request
+
+    environment:
+      flutter: stable
+
+    scripts:
+
+      - name: Flutter version
+        script: |
+          set -e
+          flutter --version
+
+      - name: Get Flutter packages
+        script: |
+          set -e
+          flutter pub get
+
+      - name: Analyze Flutter
+        script: |
+          set -e
+          flutter analyze
+
+      - name: Flutter tests
+        script: |
+          set -e
+          mkdir -p test-results
+          flutter test --machine > test-results/flutter.json
+        test_report: test-results/flutter.json
+
+      - name: Build iOS
+        script: |
+          set -e
+          flutter build ios --release --no-codesign
+
+    artifacts:
+      - build/ios/iphoneos/*.app
