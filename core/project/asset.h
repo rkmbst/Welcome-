@@ -2,6 +2,7 @@
 #define BEAST_ASSET_H
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
 #include "../time/time.h"
@@ -131,6 +132,12 @@ public:
     ) {
         capabilities_ = capabilities;
     }
+
+    /* --------------------------------------------------------
+     * Clone
+     * -------------------------------------------------------- */
+
+    std::unique_ptr<Asset> clone() const;
 
 private:
     AssetId id_{0};
