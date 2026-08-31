@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <string>
 
+#include "../time/time.h"
+
 namespace beast {
 
 /* ============================================================
