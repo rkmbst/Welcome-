@@ -1,24 +1,69 @@
-#ifndef BEAST_EDITOR_CONTEXT_H
-#define BEAST_EDITOR_CONTEXT_H
+#ifndef BEAST_EDITOR_H
+#define BEAST_EDITOR_H
+
+#include <memory>
+
+#include "../commands/command_history.h"
+#include "../state/editor_state.h"
+#include "editor_context.h"
 
 namespace beast {
 
-class EditorState;
-
-class EditorContext final {
+class Editor final {
 public:
-    explicit EditorContext(EditorState& state) noexcept;
+    explicit Editor(
+        std::unique_ptr<Project> project
+    );
 
-    EditorContext(const EditorContext&) = delete;
-    EditorContext& operator=(const EditorContext&) = delete;
+    ~Editor() = default;
 
-    EditorState& state() noexcept;
-    const EditorState& state() const noexcept;
+    Editor(const Editor&) = delete;
+    Editor& operator=(const Editor&) = delete;
+
+    Editor(Editor&&) noexcept = delete;
+    Editor& operator=(Editor&&) noexcept = delete;
+
+    EditorState& state() noexcept {
+        return state_;
+    }
+
+    const EditorState& state() const noexcept {
+        return state_;
+    }
+
+    CommandResult execute(
+        std::unique_ptr<Command> command
+    );
+
+    CommandResult undo();
+
+    CommandResult redo();
+
+    std::unique_ptr<Snapshot> createSnapshot() const;
+
+    Revision revision() const noexcept {
+        return state_.revision();
+    }
+
+    Time playhead() const noexcept {
+        return state_.playhead();
+    }
+
+    void setPlayhead(Time time) noexcept {
+        state_.setPlayhead(time);
+    }
 
 private:
-    EditorState& state_;
+    EditorState state_;
+
+    /*
+     * Context is a non-owning view into the Editor runtime.
+     */
+    EditorContext context_;
+
+    CommandHistory history_;
 };
 
 } // namespace beast
 
-#endif // BEAST_EDITOR_CONTEXT_H
+#endif // BEAST_EDITOR_H
