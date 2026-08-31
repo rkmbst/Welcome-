@@ -1,79 +1,49 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(BeastEngine LANGUAGES CXX)
-
 # ------------------------------------------------------------
-# Core sources
+# Test infrastructure
 # ------------------------------------------------------------
 
-file(GLOB_RECURSE BEAST_CORE_SOURCES
-    CONFIGURE_DEPENDS
-    "${CMAKE_CURRENT_SOURCE_DIR}/core/*.cpp"
-)
+function(beast_add_test name source)
+    add_executable(
+        ${name}
+        ${source}
+    )
 
-add_library(
-    beast_core
-    STATIC
-    ${BEAST_CORE_SOURCES}
-)
-
-# ------------------------------------------------------------
-# Beast Core options
-# ------------------------------------------------------------
-
-option(
-    BEAST_ENABLE_WARNINGS
-    "Enable strict compiler warnings"
-    ON
-)
-
-# ------------------------------------------------------------
-# Include paths
-# ------------------------------------------------------------
-
-target_include_directories(
-    beast_core
-    PUBLIC
-        "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-
-# ------------------------------------------------------------
-# C++ standard
-# ------------------------------------------------------------
-
-target_compile_features(
-    beast_core
-    PUBLIC
-        cxx_std_20
-)
-
-# ------------------------------------------------------------
-# Compiler warnings
-# ------------------------------------------------------------
-
-if(BEAST_ENABLE_WARNINGS)
-
-    if(MSVC)
-
-        target_compile_options(
+    target_link_libraries(
+        ${name}
+        PRIVATE
             beast_core
-            PRIVATE
-                /W4
-                /permissive-
-        )
+    )
 
-    else()
+    target_include_directories(
+        ${name}
+        PRIVATE
+            "${CMAKE_SOURCE_DIR}"
+    )
 
-        target_compile_options(
-            beast_core
-            PRIVATE
-                -Wall
-                -Wextra
-                -Wpedantic
-                -Wconversion
-                -Wsign-conversion
-        )
+    target_compile_features(
+        ${name}
+        PRIVATE
+            cxx_std_20
+    )
 
-    endif()
+    add_test(
+        NAME ${name}
+        COMMAND ${name}
+    )
+endfunction()
 
-endif()
+# ------------------------------------------------------------
+# Tests
+# ------------------------------------------------------------
+
+beast_add_test(
+    beast_time_test
+    core/time/time_test.cpp
+)
+
+beast_add_test(
+    beast_add_clip_command_test
+    core/commands/add_clip_command_test.cpp
+)
